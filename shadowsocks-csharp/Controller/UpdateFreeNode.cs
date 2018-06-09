@@ -13,7 +13,7 @@ namespace Shadowsocks.Controller
 {
     public class UpdateFreeNode
     {
-        private const string UpdateURL = "https://raw.githubusercontent.com/breakwa11/breakwa11.github.io/master/free/freenodeplain.txt";
+        private const string UpdateURL = "https://raw.githubusercontent.com/shadowsocksrr/breakwa11.github.io/master/free/freenodeplain.txt";
 
         public event EventHandler NewFreeNodeFound;
         public string FreeNodeResult;
@@ -31,6 +31,7 @@ namespace Shadowsocks.Controller
                 if (use_proxy)
                 {
                     WebProxy proxy = new WebProxy(IPAddress.Loopback.ToString(), config.localPort);
+                    //MessageBox.Show(IPAddress.Loopback.ToString() + config.localPort.ToString());
                     if (!string.IsNullOrEmpty(config.authPass))
                     {
                         proxy.Credentials = new NetworkCredential(config.authUser, config.authPass);
@@ -84,6 +85,7 @@ namespace Shadowsocks.Controller
         Configuration _config;
         List<ServerSubscribe> _serverSubscribes;
         UpdateFreeNode _updater;
+        private NotifyIcon _notifyIcon;
         string _URL;
         bool _use_proxy;
 
@@ -126,11 +128,19 @@ namespace Shadowsocks.Controller
                 return true;
             }
         }
-
+        void ShowBalloonTip(string title, string content, ToolTipIcon icon, int timeout)
+        {
+            _notifyIcon = new NotifyIcon();
+            _notifyIcon.BalloonTipTitle = title;
+            _notifyIcon.BalloonTipText = content;
+            _notifyIcon.BalloonTipIcon = icon;
+            _notifyIcon.ShowBalloonTip(timeout);
+        }
         public string URL
         {
             get
             {
+                //MessageBox.Show(_URL);
                 return _URL;
             }
         }

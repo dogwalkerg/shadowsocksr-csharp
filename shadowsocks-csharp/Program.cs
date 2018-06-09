@@ -59,6 +59,7 @@ namespace Shadowsocks
                 //#if !DEBUG
                 Logging.OpenLogFile();
                 //#endif
+                // MessageBox.Show("1");
 #if !_CONSOLE
                 int try_times = 0;
                 while (Configuration.Load() == null)
@@ -75,8 +76,11 @@ namespace Shadowsocks
                     try_times += 1;
                 }
 #endif
+                // MessageBox.Show("2");
                 _controller = new ShadowsocksController();
                 HostMap.Instance().LoadHostFile();
+
+                // MessageBox.Show("3");
 #if !_CONSOLE
                 _viewController = new MenuViewController(_controller);
 #endif

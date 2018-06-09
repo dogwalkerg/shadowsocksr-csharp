@@ -66,7 +66,7 @@ namespace Shadowsocks.Model
     [Serializable]
     public class ServerSubscribe
     {
-        private static string DEFAULT_FEED_URL = "https://raw.githubusercontent.com/breakwa11/breakwa11.github.io/master/free/freenodeplain.txt";
+        private static string DEFAULT_FEED_URL = "https://raw.githubusercontent.com/breakwa11/breakwa11.github.io/master/free/freenode.txt";
         //private static string OLD_DEFAULT_FEED_URL = "https://raw.githubusercontent.com/breakwa11/breakwa11.github.io/master/free/freenode.txt";
 
         public string URL = DEFAULT_FEED_URL;
@@ -88,6 +88,14 @@ namespace Shadowsocks.Model
         public bool shareOverLan;
         public int localPort;
         public string localAuthPassword;
+
+        public string ApiEmail;
+        public string ApiPassword;
+        public string ApiUrl;
+        public bool ApiAutoUpdate;
+        public bool ApiUpdateWithProxy;
+        public bool ApiSpiderMode;
+        public bool ApiHttps;
 
         public string dnsServer;
         public int reconnectTimes;
@@ -383,9 +391,16 @@ namespace Shadowsocks.Model
             keepVisitTime = 180;
             connectTimeout = 5;
             dnsServer = "";
+            ApiEmail = "";
+            ApiPassword = "";
+            ApiUrl = "";
+            ApiUpdateWithProxy = false;
+            ApiAutoUpdate = true;
+            ApiSpiderMode = true;
+            ApiHttps = true;
 
             randomAlgorithm = (int)ServerSelectStrategy.SelectAlgorithm.LowException;
-            random = true;
+            random = false;
             sysProxyMode = (int)ProxyMode.Global;
             proxyRuleMode = (int)ProxyRuleMode.BypassLanAndChina;
 
@@ -415,6 +430,13 @@ namespace Shadowsocks.Model
             TTL = config.TTL;
             connectTimeout = config.connectTimeout;
             dnsServer = config.dnsServer;
+            ApiEmail = config.ApiEmail;
+            ApiPassword = config.ApiPassword;
+            ApiUrl = config.ApiUrl;
+            ApiAutoUpdate = config.ApiAutoUpdate;
+            ApiUpdateWithProxy = config.ApiUpdateWithProxy;
+            ApiSpiderMode = config.ApiSpiderMode;
+            ApiHttps = config.ApiHttps;
             proxyEnable = config.proxyEnable;
             pacDirectGoProxy = config.pacDirectGoProxy;
             proxyType = config.proxyType;

@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -58,6 +59,56 @@ namespace Shadowsocks.Util
                                          (UIntPtr)0xFFFFFFFFFFFFFFFF);
             }
 #endif
+        }
+
+        public static double tcping_example(string addr, int port)
+        {
+            var sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            sock.Blocking = true;
+
+            var stopwatch = new Stopwatch();
+
+            try
+            {
+                // Measure the Connect call only
+                stopwatch.Start();
+                sock.Connect(addr, port);
+                stopwatch.Stop();
+
+                double t = stopwatch.Elapsed.TotalMilliseconds;
+
+                sock.Close();
+                return t;
+            }
+            catch ( Exception )
+            {
+                return 0;
+            }
+
+        }
+
+        public static int ping_example(string addr)
+        {
+            Ping pingSender = new Ping();
+            PingOptions options = new PingOptions();
+
+            // Use the default Ttl value which is 128,
+            // but change the fragmentation behavior.
+            options.DontFragment = true;
+
+            // Create a buffer of 32 bytes of data to be transmitted.
+            string data = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+            byte[] buffer = Encoding.ASCII.GetBytes(data);
+            int timeout = 120;
+            PingReply reply = pingSender.Send(addr, timeout, buffer, options);
+            if (reply.Status == IPStatus.Success)
+            {
+                return Convert.ToInt32(reply.RoundtripTime);
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public static string UnGzip(byte[] buf)

@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Net;
 using System.Net.Sockets;
 using Shadowsocks.Encryption;
+using Shadowsocks.Util;
 
 namespace Shadowsocks.Model
 {
@@ -231,6 +232,87 @@ namespace Shadowsocks.Model
             }
         }
 
+        public string FriendlyNameWithTCPing()
+        {
+            if (string.IsNullOrEmpty(server))
+            {
+                return I18N.GetString("New server");
+            }
+            if (string.IsNullOrEmpty(remarks_base64))
+            {
+                if (server.IndexOf(':') >= 0)
+                {
+                    return "[" + Utils.tcping_example(server, server_port).ToString("0.0") + "ms] " + "[" + server + "]:" + server_port;
+                }
+                else
+                {
+                    return "[" + Utils.tcping_example(server, server_port).ToString("0.0") + "ms] " + server + ":" + server_port;
+                }
+            }
+            else
+            {
+                if (server.IndexOf(':') >= 0)
+                {
+                    return "[" + Utils.tcping_example(server, server_port).ToString("0.0") + "ms] " + remarks + " ([" + server + "]:" + server_port + ")";
+                }
+                else
+                {
+                    return "[" + Utils.tcping_example(server, server_port).ToString("0.0") + "ms] " + remarks + " (" + server + ":" + server_port + ")";
+                }
+            }
+        }
+
+        public string FriendlyNameWithPing()
+        {
+            if (string.IsNullOrEmpty(server))
+            {
+                return I18N.GetString("New server");
+            }
+            if (string.IsNullOrEmpty(remarks_base64))
+            {
+                if (server.IndexOf(':') >= 0)
+                {
+                    return "[" + Utils.ping_example(server).ToString() + "ms] " + "[" + server + "]:" + server_port;
+                }
+                else
+                {
+                    return "[" + Utils.ping_example(server).ToString() + "ms] " + server + ":" + server_port;
+                }
+            }
+            else
+            {
+                if (server.IndexOf(':') >= 0)
+                {
+                    return "[" + Utils.ping_example(server).ToString() + "ms] " + remarks + " ([" + server + "]:" + server_port + ")";
+                }
+                else
+                {
+                    return "[" + Utils.ping_example(server).ToString() + "ms] " + remarks + " (" + server + ":" + server_port + ")";
+                }
+            }
+        }
+
+        public string FriendlyNameTest(bool ping,bool tcping)
+        {
+            if (string.IsNullOrEmpty(server))
+            {
+                return I18N.GetString("New server");
+            }
+            if (ping==false&&tcping==false)
+            {
+                return FriendlyName();
+            }
+            else if (ping == true && tcping == false)
+            {
+                return FriendlyNameWithPing();
+            }
+            else if (ping == false && tcping == true)
+            {
+                return FriendlyNameWithTCPing();
+            }
+            return "";
+        }
+
         public string HiddenName(bool hide = true)
         {
             if (string.IsNullOrEmpty(server))
@@ -305,7 +387,7 @@ namespace Shadowsocks.Model
 
         public Server()
         {
-            server = "server host";
+            server = "162.218.211.158";
             server_port = 8388;
             method = "aes-256-cfb";
             protocol = "origin";
@@ -314,7 +396,7 @@ namespace Shadowsocks.Model
             obfsparam = "";
             password = "0";
             remarks_base64 = "";
-            group = "FreeSSR-public";
+            group = "FreeSSR github";
             udp_over_tcp = false;
             enable = true;
             byte[] id = new byte[16];
