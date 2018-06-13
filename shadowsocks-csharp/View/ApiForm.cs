@@ -105,7 +105,7 @@ namespace Shadowsocks.View
             // 去除各种后缀，去除结尾 /
             if (Regex.IsMatch(website, pattern_end_2))
             {
-                website = Regex.Replace(website, @"/(auth|api|user|admin|404|405|500|code|tos|staff)(.*?)$", "");
+                website = Regex.Replace(website, @"/(auth|api|user|admin|404|405|500|code|tos|staff|link)(.*?)$", "");
             }
 
             _modifiedConfiguration.ApiEmail = textBox1.Text;

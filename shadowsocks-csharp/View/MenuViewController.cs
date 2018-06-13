@@ -42,6 +42,7 @@ namespace Shadowsocks.View
         private MenuItem editApiInfoItem;
         private MenuItem accountItem;
         private MenuItem apiItem;
+        private MenuItem newMainFormItem;
 
         private MenuItem noModifyItem;
         private MenuItem enableItem;
@@ -66,6 +67,7 @@ namespace Shadowsocks.View
         private PortSettingsForm portMapForm;
         private SubscribeForm subScribeForm;
         private ApiForm apiForm;
+        private NewMainForm newMainForm;
         private AccountForm accountForm;
         private LogForm logForm;
         private string _urlToOpen;
@@ -255,6 +257,7 @@ namespace Shadowsocks.View
         private void LoadMenu()
         {
             this.contextMenu1 = new ContextMenu(new MenuItem[] {
+                newMainFormItem = CreateMenuItem("Show main panel", new EventHandler(this.newMainFormItem_Click)),
                 apiItem = CreateMenuGroup("Login", new MenuItem[] {
                     updateApiNodeItem = CreateMenuItem("Update node", new EventHandler(this.updateApiNodeItem_Click)),
                     editApiInfoItem = CreateMenuItem("Edit login information", new EventHandler(this.editApiInfoItem_Click)),
@@ -292,9 +295,6 @@ namespace Shadowsocks.View
                 new MenuItem("-"),
                 ServersItem = CreateMenuGroup("Servers", new MenuItem[] {
                     SeperatorItem = new MenuItem("-"),
-                    CreateMenuItem("Show Icmp result", new EventHandler(this.ShowIcmp_Click)),
-                    CreateMenuItem("Show Tcping result", new EventHandler(this.ShowTcping_Click)),
-                    new MenuItem("-"),
                     CreateMenuItem("Edit servers...", new EventHandler(this.Config_Click)),
                     CreateMenuItem("Import servers from file...", new EventHandler(this.Import_Click)),
                     new MenuItem("-"),
@@ -949,67 +949,6 @@ namespace Shadowsocks.View
             }
         }
 
-        private void UpdateServersMenuTest(bool ping, bool tcping)
-        {
-            var items = ServersItem.MenuItems;
-            while (items[0] != SeperatorItem)
-            {
-                items.RemoveAt(0);
-            }
-
-            Configuration configuration = controller.GetCurrentConfiguration();
-            SortedDictionary<string, MenuItem> group = new SortedDictionary<string, MenuItem>();
-            const string def_group = "!(no group)";
-            string select_group = "";
-            for (int i = 0; i < configuration.configs.Count; i++)
-            {
-                string group_name;
-                Server server = configuration.configs[i];
-                if (string.IsNullOrEmpty(server.group))
-                    group_name = def_group;
-                else
-                    group_name = server.group;
-
-                MenuItem item = new MenuItem(server.FriendlyNameTest(ping,tcping));
-
-                item.Tag = i;
-                item.Click += AServerItem_Click;
-                if (configuration.index == i)
-                {
-                    item.Checked = true;
-                    select_group = group_name;
-                }
-
-                if (group.ContainsKey(group_name))
-                {
-                    group[group_name].MenuItems.Add(item);
-                }
-                else
-                {
-                    group[group_name] = new MenuItem(group_name, new MenuItem[1] { item });
-                }
-            }
-            {
-                int i = 0;
-                foreach (KeyValuePair<string, MenuItem> pair in group)
-                {
-                    if (pair.Key == def_group)
-                    {
-                        pair.Value.Text = "(empty group)";
-                    }
-                    if (pair.Key == select_group)
-                    {
-                        pair.Value.Text = "● " + pair.Value.Text;
-                    }
-                    else
-                    {
-                        pair.Value.Text = "　" + pair.Value.Text;
-                    }
-                    items.Add(i, pair.Value);
-                    ++i;
-                }
-            }
-        }
 
         private void ShowConfigForm(bool addNode)
         {
@@ -1196,6 +1135,27 @@ namespace Shadowsocks.View
             }
         }
 
+        private void ShowNewMainForm()
+        {
+            if (newMainForm != null)
+            {
+                newMainForm.Activate();
+                newMainForm.Update();
+                if (newMainForm.WindowState == FormWindowState.Minimized)
+                {
+                    newMainForm.WindowState = FormWindowState.Normal;
+                }
+            }
+            else
+            {
+                newMainForm = new NewMainForm(controller);
+                newMainForm.Show();
+                newMainForm.Activate();
+                newMainForm.BringToFront();
+                newMainForm.FormClosed += newMainForm_FormClosed;
+            }
+        }
+
         void configForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             configForm = null;
@@ -1235,12 +1195,17 @@ namespace Shadowsocks.View
         {
             apiForm = null;
             //updateApiNodeItem.PerformClick();
-            updateApiNodeItem_Click(this, new EventArgs());
+            //updateApiNodeItem_Click(this, new EventArgs());
         }
 
         void accountForm_FormClosed(object sender, FormClosedEventArgs e)
         {
             accountForm = null;
+        }
+
+        void newMainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            newMainForm = null;
         }
 
         private void Config_Click(object sender, EventArgs e)
@@ -1255,25 +1220,7 @@ namespace Shadowsocks.View
             }
         }
 
-        private void ShowIcmp_Click(object sender, EventArgs e)
-        {
-            Thread t = new Thread(() =>
-            {
-                UpdateServersMenuTest(true, false);
-            });
-            t.Start();
-            //UpdateServersMenuTest(true, false);
-        }
 
-        private void ShowTcping_Click(object sender, EventArgs e)
-        {
-            Thread t = new Thread(() =>
-            {
-                UpdateServersMenuTest(false, true);
-            });
-            t.Start();
-            //UpdateServersMenuTest(false, true);
-        }
 
         private void Import_Click(object sender, EventArgs e)
         {
@@ -1376,11 +1323,14 @@ namespace Shadowsocks.View
                 }
                 else
                 {
-                    ShowConfigForm(false);
+                    // ShowConfigForm(false);
+                    ShowNewMainForm();
+
                 }
             }
             else if (e.Button == MouseButtons.Middle)
             {
+                // 鼠标中间的滚轮
                 ShowServerLogForm();
             }
         }
@@ -1534,6 +1484,10 @@ namespace Shadowsocks.View
         private void accountItem_Click(object sender, EventArgs e)
         {
             ShowAccountForm();
+        }
+        private void newMainFormItem_Click(object sender, EventArgs e)
+        {
+            ShowNewMainForm();
         }
 
         private void NoModifyItem_Click(object sender, EventArgs e)

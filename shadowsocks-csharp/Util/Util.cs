@@ -111,6 +111,66 @@ namespace Shadowsocks.Util
             }
         }
 
+        public static string ping_example_3(string addr)
+        {
+            double i = ping_example(addr);
+            if (i != 0)
+            {
+                return Convert.ToString(i) + "ms";
+            }
+            else
+            {
+                int ii = ping_example(addr);
+                if (ii != 0)
+                {
+                    return Convert.ToString(ii) + "ms";
+                }
+                else
+                {
+                    int iii = ping_example(addr);
+                    if (iii == 0)
+                    {
+                        return "Failed!";
+                    }
+                    else
+                    {
+                        return Convert.ToString(iii) + "ms";
+                    }
+
+                }
+            }
+        }
+
+        public static string tcping_example_3(string addr, int port)
+        {
+            double i = tcping_example(addr, port);
+            if (i != 0)
+            {
+                return i.ToString("0.0") + "ms";
+            }
+            else
+            {
+                double ii = tcping_example(addr, port);
+                if (ii != 0)
+                {
+                    return ii.ToString("0.0") + "ms";
+                }
+                else
+                {
+                    double iii = tcping_example(addr, port);
+                    if (iii == 0)
+                    {
+                        return "Failed!";
+                    }
+                    else
+                    {
+                        return iii.ToString("0.0") + "ms";
+                    }
+
+                }
+            }
+        }
+
         public static string UnGzip(byte[] buf)
         {
             byte[] buffer = new byte[1024];

@@ -5,6 +5,7 @@ Shadowsocks=Shadowsocks
 # Menu items
 
 Mode=系统代理模式
+Show main panel=显示主面板
 Login=登录
 Update node=更新服务器
 Edit login information=修改登录信息
@@ -60,6 +61,13 @@ Donate...=捐助...
 Quit=退出
 Edit Servers=编辑服务器
 Global Settings=选项设置
+
+# New Main Form
+Connect=连接
+Connect_type=连接模式
+Test=测试
+Statistics=连接统计
+Server_config=编辑服务器
 
 # Api Edi Form
 ApiForm=Api登录设置
