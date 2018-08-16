@@ -4,10 +4,21 @@ ShadowsocksR for Windows
 [![Build Status]][Appveyor]
 
 #### 声明
-1、绑定域名：
-```shadowsocks-csharp/Model/Configuration.cs``` 函数 ```GetDefaultUrl()```
 
-2、Api json声明
+##### 此版本将不对 UI 美化 或其他需求进行更新
+
+##### 1、绑定域名
+文件 ```shadowsocks-csharp/Model/Configuration.cs```
+
+函数 ```GetDefaultUrl()```
+
+一个是主域名，一个是备用域名。
+
+此外，在ssr生成的```gui-config.json```中的apiurl，也可作为登录域名
+
+此版本会依次尝试apiurl、主域名及备用域名进行登录，相关逻辑已大致完成。
+
+##### 2、Api json声明
 ```php
         $res['ret'] = ...
         $res['msg'] = ...
