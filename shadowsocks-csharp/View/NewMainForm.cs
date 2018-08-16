@@ -12,6 +12,9 @@ using Shadowsocks.Model;
 using Shadowsocks.Util;
 using Shadowsocks.Properties;
 
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 namespace Shadowsocks.View
 {
     public partial class NewMainForm : Form
@@ -21,6 +24,7 @@ namespace Shadowsocks.View
         private Configuration _modifiedConfiguration;
         private ServerLogForm serverLogForm;
         private ConfigForm configForm;
+        private AccountForm accountForm;
         private UpdateChecker updateChecker;
         public delegate void treeinvoke();
 
@@ -52,10 +56,23 @@ namespace Shadowsocks.View
             button2.Text = I18N.GetString("Test");
             button3.Text = I18N.GetString("Statistics");
             button4.Text = I18N.GetString("Server_config");
+            button5.Text = I18N.GetString("Account");
         }
         
         private void LoadServer()
         {
+            JObject jo =  Login.GetLoginJObject();
+
+            if (jo!=null)
+            {
+                string level = jo["data"]["class"].ToString();
+                string traffic_remain = jo["data"]["unusedTraffic"].ToString();
+                string due_date = jo["data"]["class_expire"].ToString();
+                label7.Text = "Lv "+level;
+                label5.Text = traffic_remain;
+                label3.Text = due_date;
+            }
+
             Configuration c = controller.GetConfiguration();
             for (int i=0; i < c.configs.Count; i++)
             {
@@ -76,16 +93,15 @@ namespace Shadowsocks.View
             {
                 case 1:
                     comboBox1.SelectedIndex = 0;
-                    label2.Text = "请注意！socks 模式将不会设置IE代理，\n\n" +
-                    "也即无法直接通过浏览器代理上外网！\n\n" +
-                    "您可将连接模式修改为 pac模式 或\n\n" +
-                    "全局模式 来通过浏览器上外网（新人无需关注两者区别）！";
+                    button1.Text = I18N.GetString("Click To Start");
                     break;
                 case 2:
                     comboBox1.SelectedIndex = 1;
+                    button1.Text = I18N.GetString("Click To Stop");
                     break;
                 case 3:
                     comboBox1.SelectedIndex = 2;
+                    button1.Text = I18N.GetString("Click To Stop");
                     break;
             }
 
@@ -171,14 +187,11 @@ namespace Shadowsocks.View
             {
                 if (comboBox1.SelectedIndex == 0)
                 {
-                    label2.Text = "请注意！socks 模式将不会设置IE代理，\n\n" +
-                    "也即无法直接通过浏览器代理上外网！\n\n" +
-                    "您可将连接模式修改为 pac模式 或\n\n" +
-                    "全局模式 来通过浏览器上外网（新人无需关注两者区别）！";
+                    button1.Text = I18N.GetString("Click To Start");
                 }
                 else
                 {
-                    label2.Text = "";
+                    button1.Text = I18N.GetString("Click To Stop");
                 }
                 switch (comboBox1.SelectedIndex)
                 {
@@ -190,6 +203,29 @@ namespace Shadowsocks.View
                         break;
                     case 2:
                         controller.ToggleMode(ProxyMode.Global);
+                        break;
+                }
+            }
+            else
+            {
+                // 同一模式，点击该按钮
+
+                switch (comboBox1.SelectedIndex)
+                {
+                    case 0:
+                        button1.Text = I18N.GetString("Click To Stop");
+                        comboBox1.SelectedIndex = 1;
+                        controller.ToggleMode(ProxyMode.Pac);
+                        break;
+                    case 1:
+                        button1.Text = I18N.GetString("Click To Start");
+                        comboBox1.SelectedIndex = 0;
+                        controller.ToggleMode(ProxyMode.Direct);
+                        break;
+                    case 2:
+                        button1.Text = I18N.GetString("Click To Start");
+                        comboBox1.SelectedIndex = 0;
+                        controller.ToggleMode(ProxyMode.Direct);
                         break;
                 }
             }
@@ -296,7 +332,11 @@ namespace Shadowsocks.View
         {
             //Thread t = new Thread(new ThreadStart(show_ping));
             //t.Start();
-            show_ping();
+            if (ConnectTest.hasInternetAccess())
+            {
+                show_ping();
+            }
+            
         }
 
         void serverLogForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -308,6 +348,10 @@ namespace Shadowsocks.View
         {
             configForm = null;
             Util.Utils.ReleaseMemory();
+        }
+        void accountForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            accountForm = null;
         }
         private void ShowServerLogForm()
         {
@@ -353,6 +397,26 @@ namespace Shadowsocks.View
                 configForm.FormClosed += configForm_FormClosed;
             }
         }
+        private void ShowAccountForm()
+        {
+            if (accountForm != null)
+            {
+                accountForm.Activate();
+                accountForm.Update();
+                if (accountForm.WindowState == FormWindowState.Minimized)
+                {
+                    accountForm.WindowState = FormWindowState.Normal;
+                }
+            }
+            else
+            {
+                accountForm = new AccountForm(controller);
+                accountForm.Show();
+                accountForm.Activate();
+                accountForm.BringToFront();
+                accountForm.FormClosed += accountForm_FormClosed;
+            }
+        }
         private void button3_Click(object sender, EventArgs e)
         {
             ShowServerLogForm();
@@ -361,6 +425,11 @@ namespace Shadowsocks.View
         private void button4_Click(object sender, EventArgs e)
         {
             ShowConfigForm(false);
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            ShowAccountForm();
         }
     }
 

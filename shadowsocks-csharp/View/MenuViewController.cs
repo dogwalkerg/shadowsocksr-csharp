@@ -1,6 +1,7 @@
 ﻿using Shadowsocks.Controller;
 using Shadowsocks.Model;
 using Shadowsocks.Properties;
+using Shadowsocks.Util;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -42,6 +43,11 @@ namespace Shadowsocks.View
         private MenuItem editApiInfoItem;
         private MenuItem accountItem;
         private MenuItem apiItem;
+        private MenuItem testItem;
+        private MenuItem test1Item;
+        private MenuItem test2Item;
+        private MenuItem test3Item;
+        private MenuItem test4Item;
         private MenuItem newMainFormItem;
 
         private MenuItem noModifyItem;
@@ -97,11 +103,15 @@ namespace Shadowsocks.View
             //_notifyIcon.MouseDoubleClick += notifyIcon1_DoubleClick;
 
             updateChecker = new UpdateChecker();
-            Thread t1 = new Thread(() =>
+            if (ConnectTest.hasInternetAccess())
             {
-                updateChecker.NewVersionFound += updateChecker_NewVersionFound;
-            });
-            t1.Start();
+                Thread t1 = new Thread(() =>
+                {
+                    updateChecker.NewVersionFound += updateChecker_NewVersionFound;
+                });
+                t1.Start();
+            }
+
             //updateChecker.NewVersionFound += updateChecker_NewVersionFound;
 
             updateFreeNodeChecker = new UpdateFreeNode();
@@ -114,15 +124,20 @@ namespace Shadowsocks.View
             LoadCurrentConfiguration();
 
             Configuration cfg = controller.GetCurrentConfiguration();
-            Thread t2 = new Thread(() => {
-                //更新订阅链接
-                if (cfg.isDefaultConfig() || cfg.nodeFeedAutoUpdate)
-                {
-                    updateSubscribeManager.CreateTask(controller.GetCurrentConfiguration(), updateFreeNodeChecker, -1, !cfg.isDefaultConfig());
-                }
+            if (ConnectTest.hasInternetAccess())
+            {
+                Thread t2 = new Thread(() => {
+                    //更新订阅链接
+                    if (cfg.isDefaultConfig() || cfg.nodeFeedAutoUpdate)
+                    {
+                        updateSubscribeManager.CreateTask(controller.GetCurrentConfiguration(), updateFreeNodeChecker, -1, !cfg.isDefaultConfig());
+                    }
 
-            });
-            t2.Start();
+                });
+                t2.Start();
+            }
+
+
 
             // 如果是初始空白配置，则载入api界面
             if (cfg.isDefaultConfig())
@@ -133,7 +148,7 @@ namespace Shadowsocks.View
             else
             {
                 // 如果设置了【自动更新】，则从api自动更新
-                if (cfg.ApiAutoUpdate)
+                if (cfg.ApiAutoUpdate && ConnectTest.hasInternetAccess())
                 {
                     //updateApiNodeItem.PerformClick();
                     updateApiNodeItem_Click(this, new EventArgs());
@@ -258,10 +273,16 @@ namespace Shadowsocks.View
         {
             this.contextMenu1 = new ContextMenu(new MenuItem[] {
                 newMainFormItem = CreateMenuItem("Show main panel", new EventHandler(this.newMainFormItem_Click)),
+                updateApiNodeItem = CreateMenuItem("Update node", new EventHandler(this.updateApiNodeItem_Click)),
                 apiItem = CreateMenuGroup("Login", new MenuItem[] {
-                    updateApiNodeItem = CreateMenuItem("Update node", new EventHandler(this.updateApiNodeItem_Click)),
                     editApiInfoItem = CreateMenuItem("Edit login information", new EventHandler(this.editApiInfoItem_Click)),
                     accountItem = CreateMenuItem("Account info", new EventHandler(this.accountItem_Click))
+                }),
+                testItem = CreateMenuGroup("Test", new MenuItem[] {
+                    test1Item = CreateMenuItem("Test Internet Connect", new EventHandler(this.test1Item_Click)),
+                    test2Item = CreateMenuItem("Test Login Url", new EventHandler(this.test2Item_Click)),
+                    test3Item = CreateMenuItem("Test Baidu", new EventHandler(this.test3Item_Click)),
+                    test4Item = CreateMenuItem("Test Google", new EventHandler(this.test4Item_Click))
                 }),
                 new MenuItem("-"),
                 modeItem = CreateMenuGroup("Mode", new MenuItem[] {
@@ -607,7 +628,7 @@ namespace Shadowsocks.View
             //string result = result;
             //updateFreeNodeChecker.FreeNodeResult = result;
             //MessageBox.Show(result);
-            if (!String.IsNullOrEmpty(result))
+            if ( !String.IsNullOrEmpty(result) )
             {
                 List<string> urls = new List<string>();
                 int max_node_num = 0;
@@ -617,19 +638,7 @@ namespace Shadowsocks.View
                 {
                     selected_server = config.configs[config.index];
                 }
-                //MessageBox.Show(updateFreeNodeChecker.FreeNodeResult);
-                //Match match_maxnum = Regex.Match(updateFreeNodeChecker.FreeNodeResult, "^MAX=([0-9]+)");
-                //if (match_maxnum.Success)
-                //{
-                //    try
-                //    {
-                //        max_node_num = Convert.ToInt32(match_maxnum.Groups[1].Value, 10);
-                //    }
-                //    catch
-                //    {
 
-                //    }
-                //}
                 URL_Split(result, ref urls);
                 for (int i = urls.Count - 1; i >= 0; --i)
                 {
@@ -805,13 +814,13 @@ namespace Shadowsocks.View
             if (count > 0)
             {
                 Configuration config = controller.GetCurrentConfiguration();
-                if ( config.index == 0 && config.configs[0].server == Configuration.GetDefaultServer().server)
+                if ( config.configs[0].server == Configuration.GetDefaultServer().server)
                 {
-                    config.index = 1;
+                    config.configs.RemoveAt(0);
                     controller.SaveServersConfig(config);
                 }
                 ShowBalloonTip(I18N.GetString("Success"),
-                    I18N.GetString("API successfully updated!"), ToolTipIcon.Info, 10000);
+                    I18N.GetString("API update successfully!"), ToolTipIcon.Info, 10000);
                 //MessageBox.Show(count.ToString());
             }
             else
@@ -1196,6 +1205,11 @@ namespace Shadowsocks.View
             apiForm = null;
             //updateApiNodeItem.PerformClick();
             //updateApiNodeItem_Click(this, new EventArgs());
+            Configuration cfg = controller.GetCurrentConfiguration();
+            if (cfg.isDefaultConfig())
+            {
+                updateApiNodeItem_Click(this, new EventArgs());
+            }
         }
 
         void accountForm_FormClosed(object sender, FormClosedEventArgs e)
@@ -1346,136 +1360,55 @@ namespace Shadowsocks.View
 
         private void updateApiNodeItem_Click_todo(object sender, EventArgs e)
         {
-            Configuration config = controller.GetCurrentConfiguration();
-            string email = config.ApiEmail, passwd = config.ApiPassword, website = config.ApiUrl;
-
-            if (email == "" || passwd == "" || website == "")
+            JObject jo = Login.GetLoginJObject();
+            if (jo != null)
             {
-                return;
-            }
+                string ssr_url_all = Util.Base64.DecodeStandardSSRUrlSafeBase64(jo["data"]["ssr_url_all"].ToString());
 
-            bool use_proxy = config.ApiUpdateWithProxy;
-
-            bool spider_mode = config.ApiSpiderMode;
-
-            if (spider_mode == true)
-            {
-
-                CookieContainer cookies = new CookieContainer();
-
-                string str = string.Empty, ssr_url_all = string.Empty;
-
-                try
-                {
-                    Uri site = new Uri(website + "/auth/login");
-                    HttpWebRequest request = (HttpWebRequest)WebRequest.Create(site);
-                    request.Method = "POST";
-                    request.Proxy = null;
-                    string postData = "email=" + email + "&passwd=" + passwd;
-                    byte[] byteArray = Encoding.UTF8.GetBytes(postData);
-                    request.CookieContainer = cookies;
-                    request.ContentType = "application/x-www-form-urlencoded";
-                    request.ContentLength = byteArray.Length;
-                    Stream dataStream = request.GetRequestStream();
-                    dataStream.Write(byteArray, 0, byteArray.Length);
-                    dataStream.Close();
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                    // 回复 ok
-                    // MessageBox.Show(((HttpWebResponse)response).StatusDescription);
-                    dataStream = response.GetResponseStream();
-                    StreamReader reader = new StreamReader(dataStream);
-                    string responseFromServer = reader.ReadToEnd();
-                    string cookie_str = cookies.GetCookieHeader(site);
-                    //MessageBox.Show(responseFromServer + cookie_str);
-                    reader.Close();
-                    dataStream.Close();
-                    response.Close();
-
-                    Uri site_ua = new Uri(website + "/user");
-                    HttpWebRequest request_ua = (HttpWebRequest)WebRequest.Create(site_ua);
-                    request_ua.Method = "GET";
-                    request_ua.CookieContainer = cookies;
-                    request_ua.Proxy = null;
-                    request_ua.ContentType = "application/x-www-form-urlencoded";
-                    HttpWebResponse response_ua = (HttpWebResponse)request_ua.GetResponse();
-                    //// 回复 ok
-                    //// MessageBox.Show(((HttpWebResponse)response).StatusDescription);
-                    StreamReader reader_ua = new StreamReader(response_ua.GetResponseStream());
-                    string responseFromServer_ua = reader_ua.ReadToEnd();
-                    // MessageBox.Show(responseFromServer_ua);
-                    reader_ua.Close();
-                    response_ua.Close();
-
-                    Regex r = new Regex("(?<=\")ssr://[^\"]*(?=\")");
-                    MatchCollection mc = r.Matches(responseFromServer_ua);
-                    //for (int i = 0; i < mc.Count; i++)
-                    //{
-                    //    MessageBox.Show(i.ToString()+" : "+mc[i]);
-                    //}
-                    ssr_url_all = mc[0].ToString();
-                    updateFreeNodeChecker_NewFreeNodeFound_Api(ssr_url_all);
-                }
-                catch (Exception api_e)
-                {
-                    MessageBox.Show(api_e.ToString());
-                }
-            }
-            else
-            {
-                // 默认服务器无法更新， 故设为false
-                if (config.index == 0 && config.configs[0].server == Configuration.GetDefaultServer().server)
-                {
-                    use_proxy = false;
-                }
-
-                string str = string.Empty, result = string.Empty;
-                website += "/api/login";
-                //MessageBox.Show(website+email+passwd);
-                try
-                {
-                    WebClient wclient = new WebClient();
-                    wclient.BaseAddress = website;
-                    wclient.Encoding = Encoding.UTF8;
-                    wclient.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.117 Safari/537.36");
-                    wclient.Headers.Add("Content-Type", "application/x-www-form-urlencoded\r\n");
-                    if (use_proxy)
-                    {
-                        WebProxy proxy = new WebProxy(IPAddress.Loopback.ToString(), config.localPort);
-                        //MessageBox.Show(IPAddress.Loopback.ToString()+config.localPort.ToString());
-                        if (!string.IsNullOrEmpty(config.authPass))
-                        {
-                            proxy.Credentials = new NetworkCredential(config.authUser, config.authPass);
-                        }
-                        wclient.Proxy = proxy;
-                    }
-                    else
-                    {
-                        wclient.Proxy = null;
-                    }
-
-                    string postData = "email=" + email + "&passwd=" + passwd;
-                    byte[] sendData = Encoding.GetEncoding("utf-8").GetBytes(postData.ToString());
-                    //MessageBox.Show(postData);
-                    result = wclient.UploadString(website, postData);
-
-                    // result = Encoding.GetEncoding("utf-8").GetString(responseData);
-
-                    JObject jo = (JObject)JsonConvert.DeserializeObject(result);
-                    string ssr_url_all = Util.Base64.DecodeStandardSSRUrlSafeBase64(jo["data"]["ssr_url_all"].ToString());
-
-                    // MessageBox.Show(ssr_url_all);
-                    updateFreeNodeChecker_NewFreeNodeFound_Api(ssr_url_all);
-                }
-                catch (Exception api_e)
-                {
-                    MessageBox.Show(api_e.ToString());
-                }
-
+                // MessageBox.Show(ssr_url_all);
+                updateFreeNodeChecker_NewFreeNodeFound_Api(ssr_url_all);
             }
 
         }
 
-
+        private void test1Item_Click(object sender, EventArgs e)
+        {
+            if (ConnectTest.hasInternetAccess())
+            {
+                MessageBox.Show("Test Internet Access Successfully!");
+            }
+            else
+            {
+                MessageBox.Show("Failed to test Internet Access!");
+            }
+        }
+        private void test2Item_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("Test " + ConnectTest.GetValidLoginUrl().ToString() + " Successfully!");
+        }
+        private void test3Item_Click(object sender, EventArgs e)
+        {
+            if (ConnectTest.canLocalSocks5ProxyConnectBaidu())
+            {
+                MessageBox.Show("Test Proxy Baidu Successfully!");
+            }
+        }
+        private void test4Item_Click(object sender, EventArgs e)
+        {
+            //if (ConnectTest.canLocalSocks5ProxyConnectGoogle())
+            //{
+            //    MessageBox.Show("Test Proxy Google Successfully!");
+            //}
+            Configuration config = controller.GetCurrentConfiguration();
+            if (ConnectTest.canUrlConnect(config.ApiUrl + "/mod_mu/func/ping", "ret", false))
+            {
+                MessageBox.Show(config.ApiUrl + "/mod_mu/func/ping "+"Test Successfully!");
+            }
+            else
+            {
+                MessageBox.Show("Failed to Test "+config.ApiUrl + "/mod_mu/func/ping");
+            }
+        }
 
         private void editApiInfoItem_Click(object sender, EventArgs e)
         {

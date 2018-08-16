@@ -54,6 +54,7 @@ namespace Shadowsocks.Model
         public string remarks;
     }
 
+
     public class PortMapConfigCache
     {
         public PortMapType type;
@@ -603,6 +604,24 @@ namespace Shadowsocks.Model
         public static Server GetDefaultServer()
         {
             return new Server();
+        }
+
+
+        public static string GetDefaultUrl(int choice)
+        {
+            if (choice == 0)
+            {
+                return "https://test.com";
+            }
+            else if (choice == 1)
+            {
+                return "http://12.7.15.11";
+            }
+            else
+            {
+                return "https://test.com";
+            }
+            
         }
 
         public bool isDefaultConfig()

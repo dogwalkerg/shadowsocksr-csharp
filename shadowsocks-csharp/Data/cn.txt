@@ -68,6 +68,9 @@ Connect_type=连接模式
 Test=测试
 Statistics=连接统计
 Server_config=编辑服务器
+Account=账号信息
+Click To Start=点击启动
+Click To Stop=点击停止
 
 # Api Edi Form
 ApiForm=Api登录设置
@@ -84,6 +87,7 @@ Api_Level=等级
 Api_Level_due_date=等级过期时间
 Api_Traffic(used/enable)=总流量/已用
 Api_Today_used=今日使用
+Account_due_date=账号过期时间
 
 # Config Form
 

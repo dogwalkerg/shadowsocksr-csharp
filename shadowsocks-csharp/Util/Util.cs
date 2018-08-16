@@ -61,7 +61,7 @@ namespace Shadowsocks.Util
 #endif
         }
 
-        public static double tcping_example(string addr, int port)
+        public static double tcping_example_bak(string addr, int port)
         {
             var sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             sock.Blocking = true;
@@ -80,10 +80,41 @@ namespace Shadowsocks.Util
                 sock.Close();
                 return t;
             }
-            catch ( Exception )
+            catch (Exception)
             {
                 return 0;
             }
+
+        }
+        public static double tcping_example(string addr, int port)
+        {
+            //IPAddress ipa = IPAddress.Parse(addr);
+            //IPEndPoint ipe = new IPEndPoint(ipa, port);
+            TcpClient tcpClient = new TcpClient();
+            Stopwatch stopwatch = new Stopwatch();
+            try
+            {
+                stopwatch.Start();
+                // tcpClient.Connect(ipe);
+                var result = tcpClient.BeginConnect(addr, port, null, null);
+                if (result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(1.5)))
+                {
+                    stopwatch.Stop();
+                }
+                else
+                {
+                    return 0;
+                }
+                
+                double t = stopwatch.Elapsed.TotalMilliseconds;
+                return t;
+            }
+            catch (Exception)
+            {
+                return 0;
+            }
+
+
 
         }
 
