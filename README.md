@@ -3,22 +3,55 @@ ShadowsocksR for Windows
 
 [![Build Status]][Appveyor]
 
+#### 声明
+1、绑定域名：
+```shadowsocks-csharp/Model/Configuration.cs``` 函数 ```GetDefaultUrl()```
 
-#### Usage
+2、Api json声明
+```php
+        $res['ret'] = ...
+        $res['msg'] = ...
+        $res['data']['email'] = ...
+        $res['data']['class'] = ...
+        $res['data']['class_expire'] = ...
+        $res['data']['unusedTraffic'] = ...
+        $res['data']['TodayusedTraffic'] = ...
+        $res['data']['ssr_url_all'] = ...
+        $res['data']['ssr_url_all_mu'] = ...
+```
+```shell
+{
+  'ret' : '..',
+  'msg' : '..',
+  'data' : {
+    '' : '',
+    ...
+  }
+}
+```
 
-<img src="https://github.com/00a7a00/shadowsocksr-csharp/raw/login/.github/apilogin.png" />
 
 #### Download
 
 <a href="https://github.com/00a7a00/shadowsocksr-csharp/releases" >Download</a>
 
-### Develop
+#### Develop
 
 1、下载 Visual Studio
 
 2、```git clone https://github.com/00a7a00/shadowsocksr-csharp```
 
 3、......
+
+
+#### 发布
+
+1、打开 Visual Studio
+
+2、「批生成」
+
+3、详细可参考 <a href="https://github.com/00a7a00/shadowsocksr-csharp/releases" >Download 页面</a>
+
 #### License
 
 GPLv3
