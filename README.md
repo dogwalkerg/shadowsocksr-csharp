@@ -50,7 +50,7 @@ ShadowsocksR for Windows
 
 2、「批生成」
 
-3、详细可参考 <a href="https://github.com/00a7a00/shadowsocksr-csharp/releases" >Download 页面</a>
+3、详细可参考 <a href="https://github.com/00a7a00/shadowsocksr-csharp/releases" >Download 页面</a>，替换 exe 文件即可
 
 #### License
 
